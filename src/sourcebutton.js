@@ -1,16 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const div = document.createElement('div');
-    div.style = `
+  const div = document.createElement('div');
+  div.style = `
         position: absolute;
         bottom: 5px;
         left: 5px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
     `;
-    div.innerHTML = /* HTML */ `<a
+  div.innerHTML = /* HTML */ `<a
         href="https://github.com/2gis/mapgl-examples/tree/main/src${location.pathname.replace(
-            'mapgl-examples/',
-            '',
-        )}"
+    'mapgl-examples/',
+    '',
+  )}"
         target="_blank"
         style="text-decoration: none; color: #000;"
     >
@@ -22,5 +22,5 @@ document.addEventListener('DOMContentLoaded', () => {
             ></path>
         </svg>
     </a> `;
-    document.body.appendChild(div);
+  document.body.appendChild(div);
 });
