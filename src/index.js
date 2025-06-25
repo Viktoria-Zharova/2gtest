@@ -8,6 +8,26 @@ const map = new mapgl.Map('container', {
   maxZoom: 21,
 });
 
+let models = {
+  environment: 'House_Environment.glb',
+  building: 'House_Full.glb',
+  floor2: 'House_2floor.glb',
+  floor8: 'House_8floor.glb',
+};
+let baseUrl = 'https://getfloorplan-2-prod.s3.eu-central-1.amazonaws.com/app_storage_production/public/';
+const script = document.currentScript;
+const isLowPoly = script.dataset.lowPoly;
+
+if (isLowPoly) {
+  baseUrl = 'https://samolet-2gis.hart-estate.ru/assets/models';
+  models = {
+    environment: 'House_02_Environment.glb',
+    building: 'House_02_Full.glb',
+    floor2: 'House_02_2floor.glb',
+    floor8: 'House_02_8floor.glb',
+  };
+}
+
 // map.on('click', (e) => {
 //   console.log(e);
 // });
@@ -111,8 +131,7 @@ async function runScenario(scenario) {
 const plugin = new mapgl.GltfPlugin(map, {
   modelsLoadStrategy: needPreload ? 'waitAll' : 'dontWaitAll',
   ambientLight: { color: '#ffffff', intencity: 3 },
-  // modelsBaseUrl: 'https://disk.2gis.com/digital-twin/models_s3/realty_ads/sakura/',
-  modelsBaseUrl: 'https://getfloorplan-2-prod.s3.eu-central-1.amazonaws.com/app_storage_production/public/',
+  modelsBaseUrl: baseUrl,
   poiConfig: {
     primary: {
       fontSize: 14,
@@ -140,7 +159,7 @@ const realtyScene = [
     rotateX: 90,
     rotateY: 253,
     scale: 172,
-    modelUrl: 'House_Environment.glb',
+    modelUrl: models.environment,
     linkedIds: ['70030076609150266'],
     mapOptions: {
       center: [lon, lat],
@@ -155,12 +174,12 @@ const realtyScene = [
     rotateX: 90,
     rotateY: 253,
     scale: 172,
-    modelUrl: 'House_Full.glb',
+    modelUrl: models.building,
     floors: [
       {
         id: '8',
         text: '4-24',
-        modelUrl: 'House_8floor.glb',
+        modelUrl: models.floor8,
         mapOptions: {
           center: [lon, lat],
           pitch: 0.001,
@@ -180,70 +199,70 @@ const realtyScene = [
                 coordinates: [37.383675, 55.808440],
                 label: '2Е\n42.94 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=13741977-8c48-49cb-bd5d-2603d84fa19a',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503142',
                 },
               },
               {
                 coordinates: [37.383570, 55.808457],
                 label: '2Е\n40.82 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=ed4e9c6e-0031-47b3-bd69-aa838567ee78',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503141',
                 },
               },
               {
                 coordinates: [37.383800, 55.808414],
                 label: '2Е\n35.57 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=508703e7-3bcd-4bfd-a8e8-639053d1a2d5',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503139',
                 },
               },
               {
                 coordinates: [37.383900, 55.808400],
                 label: '3Е\n50.15 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=61a2e758-1fdf-4cdf-aa51-a5ff75fbd46c',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503143',
                 },
               },
               {
                 coordinates: [37.384030, 55.808375],
                 label: '3Е\n0.88 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=d6580778-8d4f-4661-ac2f-9331d21080bd',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503145',
                 },
               },
               {
                 coordinates: [37.384030, 55.808327],
                 label: '2Е\n40.81 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=9620cfd3-f991-4718-9e88-dc044ddad7e9',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503140',
                 },
               },
               {
                 coordinates: [37.383925, 55.808327],
                 label: '2Е\n31.59 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=a4e22138-8e4a-4e6f-8922-4f32d04b8337',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503138',
                 },
               },  
               {
                 coordinates: [37.383855, 55.808337],
                 label: '1С\n22.09 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=48b24648-c3cd-4a5a-addc-d2eb84f7a572',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503137',
                 },
               }, 
               {
                 coordinates: [37.383650, 55.808370],
                 label: '1С\n21.72 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=080ca561-b0a4-4ef5-8b29-af670c1926b5',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503136',
                 },
               },
               {
                 coordinates: [37.383550, 55.808390],
                 label: '3Е\n50.84 м²',
                 userData: {
-                  url: 'https://samolet-2.widget.floor-plan.online/beta/?id=1b9642e1-6972-4975-a331-2367b1834bae',
+                  url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503144',
                 },
               },
             ],
@@ -253,7 +272,7 @@ const realtyScene = [
       {
         id: '2',
         text: '1-3',
-        modelUrl: 'House_2floor.glb',
+        modelUrl: models.floor2,
         mapOptions: {
           center: [lon, lat],
           pitch: 0.001,
@@ -362,7 +381,7 @@ const realtyScene = [
               },
               {
                 coordinates: [37.383550, 55.808390],
-                label: '50.84 м²\nСтоматология /\nСПАт',
+                label: '50.84 м²\nСтоматология /\nSPA',
                 userData: {
                   url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503509',
                 },
