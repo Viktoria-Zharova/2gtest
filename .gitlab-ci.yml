@@ -1,15 +1,50 @@
 variables:
     FOLDER: "/var/www/$CI_PROJECT_NAME"
+    NODE_VERSION: "22.11.0"
 
 stages:
+  - install
+  - build
   - deploy
+
+install_dependencies:
+  stage: install
+  image: node:$NODE_VERSION
+  tags: ["lk-frontend-yandex"]
+  script:
+    - npm install
+  cache:
+    policy: pull-push
+    paths:
+      - node_modules/
+      - .npm/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      when: never
+
+build_project:
+  stage: build
+  image: node:$NODE_VERSION
+  tags: ["lk-frontend-yandex"]
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: always
+    - if: $CI_COMMIT_BRANCH
+      when: never
 
 deploy-job: 
   stage: deploy
   tags: ["lk-frontend-yandex"]
   script:
     - mkdir -p $FOLDER || true
-    - cp -r src/* $FOLDER/
+    - cp -r dist/* $FOLDER/
   rules:
     - if: $CI_COMMIT_BRANCH != "master"
       when: never
