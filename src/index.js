@@ -205,70 +205,70 @@ load().then((mapglAPI) => {
                   coordinates: [37.383675, 55.808440],
                   label: '2Е\n42.94 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503142',
+                    url: 'https://macro-test-new.tilda.ws/flat-42-94',
                   },
                 },
                 {
                   coordinates: [37.383570, 55.808457],
                   label: '2Е\n40.82 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503141',
+                    url: 'https://macro-test-new.tilda.ws/flat-40-82',
                   },
                 },
                 {
                   coordinates: [37.383800, 55.808414],
                   label: '2Е\n35.57 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503139',
+                    url: 'https://macro-test-new.tilda.ws/flat-35-57',
                   },
                 },
                 {
                   coordinates: [37.383900, 55.808400],
                   label: '3Е\n50.15 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503143',
+                    url: 'https://macro-test-new.tilda.ws/flat-50-15',
                   },
                 },
                 {
                   coordinates: [37.384030, 55.808375],
                   label: '3Е\n0.88 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503145',
+                    url: 'https://macro-test-new.tilda.ws/flat-50-88',
                   },
                 },
                 {
                   coordinates: [37.384030, 55.808327],
                   label: '2Е\n40.81 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503140',
+                    url: 'https://macro-test-new.tilda.ws/flat-40-81',
                   },
                 },
                 {
                   coordinates: [37.383925, 55.808327],
                   label: '2Е\n31.59 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503138',
+                    url: 'https://macro-test-new.tilda.ws/flat-31-59',
                   },
                 },
                 {
                   coordinates: [37.383855, 55.808337],
                   label: '1С\n22.09 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503137',
+                    url: 'https://macro-test-new.tilda.ws/flat-22-09',
                   },
                 },
                 {
                   coordinates: [37.383650, 55.808370],
                   label: '1С\n21.72 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503136',
+                    url: 'https://macro-test-new.tilda.ws/flat-21-72',
                   },
                 },
                 {
                   coordinates: [37.383550, 55.808390],
                   label: '3Е\n50.84 м²',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?id=503144',
+                    url: 'https://macro-test-new.tilda.ws/flat-50-84',
                   },
                 },
               ],
@@ -298,105 +298,105 @@ load().then((mapglAPI) => {
                   coordinates: [37.383100, 55.808540],
                   label: '121.41 м²\nТанцевальный зал / \nТренажерный зал',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503500',
+                    url: 'https://macro-test-new.tilda.ws/commercial-121-41',
                   },
                 },
                 {
                   coordinates: [37.382930, 55.808560],
                   label: '25.3 м²\nОбщественный туалет',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503498',
+                    url: 'https://macro-test-new.tilda.ws/commercial-25-3',
                   },
                 },
                 {
                   coordinates: [37.383050, 55.808500],
                   label: '131.38 м²\nКоридор',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503496',
+                    url: 'https://macro-test-new.tilda.ws/commercial-131-38',
                   },
                 },
                 {
                   coordinates: [37.383230, 55.808500],
                   label: '3.73 м²\nКофеточка',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503497',
+                    url: 'https://macro-test-new.tilda.ws/commercial-3-73',
                   },
                 },
                 {
                   coordinates: [37.383675, 55.808440],
                   label: '42.94 м²\nСалон красоты /\nМагазин кресел',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503501',
+                    url: 'https://macro-test-new.tilda.ws/commercial-42-94',
                   },
                 },
                 {
                   coordinates: [37.383570, 55.808457],
                   label: '40.82 м²\nБарбершоп /\nБиблиотека',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503501',
+                    url: 'https://macro-test-new.tilda.ws/commercial-40-82',
                   },
                 },
                 {
                   coordinates: [37.383800, 55.808414],
                   label: '35.57 м²\nРемонтная мастерская /\nМагазин одежды',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503507',
+                    url: 'https://macro-test-new.tilda.ws/commercial-35-57',
                   },
                 },
                 {
                   coordinates: [37.383965, 55.808390],
                   label: '101.03 м²\nКомпьютерный клуб /\nМедклиника',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503504',
+                    url: 'https://macro-test-new.tilda.ws/commercial-101-03',
                   },
                 },
                 {
                   coordinates: [37.384030, 55.808327],
                   label: '40.81 м²\nУчебный класс /\nДетский клуб',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503510',
+                    url: 'https://macro-test-new.tilda.ws/commercial-40-81',
                   },
                 },
                 {
                   coordinates: [37.383925, 55.808327],
                   label: '31.59 м²\nКабинет психолога /\nКофейня',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503503',
+                    url: 'https://macro-test-new.tilda.ws/commercial-31-59',
                   },
                 },
                 {
                   coordinates: [37.383855, 55.808337],
                   label: '22.09 м²\nWildberries /\nСДЭК',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503502',
+                    url: 'https://macro-test-new.tilda.ws/commercial-22-09',
                   },
                 },
                 {
                   coordinates: [37.383740, 55.808370],
                   label: '80.8 м²\nКоридор',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503505',
+                    url: 'https://macro-test-new.tilda.ws/commercial-80-8',
                   },
                 },
                 {
                   coordinates: [37.383650, 55.808370],
                   label: '21.72 м²\nOzon /\nЯндекс Маркет',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503506',
+                    url: 'https://macro-test-new.tilda.ws/commercial-21-72',
                   },
                 },
                 {
                   coordinates: [37.383550, 55.808390],
                   label: '50.84 м²\nСтоматология /\nSPA',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503509',
+                    url: 'https://macro-test-new.tilda.ws/commercial-50-84',
                   },
                 },
                 {
                   coordinates: [37.383220, 55.808440],
                   label: '287.78 м²\nОфис /\nПятерочка',
                   userData: {
-                    url: 'https://samolet-new2.widget.hart-estate.ru/beta/?crmPlanId=503499',
+                    url: 'https://macro-test-new.tilda.ws/commercial-287-78',
                   },
                 },
               ],
