@@ -3,11 +3,10 @@ import { GltfPlugin } from '@2gis/mapgl-gltf';
 import './assets/style.css';
 
 load().then((mapglAPI) => {
-  console.log(mapglAPI);
   const map = new mapglAPI.Map('container', {
     center: [37.383849, 55.808361],
     zoom: 18.25,
-    key: '7f9168cc-7f41-4862-ac0e-475d7c33b869', // API key can be used on 2gis.github.io/mapgl-examples only!
+    key: '7f9168cc-7f41-4862-ac0e-475d7c33b869',
     pitch: 53,
     rotation: 123,
     enableTrackResize: true,
@@ -34,12 +33,7 @@ load().then((mapglAPI) => {
     };
   }
 
-  // map.on('click', (e) => {
-  //   console.log(e);
-  // });
-  //
   const needPreload = new URL(location.href).searchParams.has('preload');
-  console.log(new URL(location.href), 'location', needPreload);
   const curtain = document.getElementById('curtain');
   curtain.style.display = 'block';
 
@@ -72,7 +66,6 @@ load().then((mapglAPI) => {
 
   async function runScenario(scenario) {
     for (const part of scenario) {
-      // console.log(part);
       const duration = part.duration || 0;
       if (part.zoom !== undefined) {
         const params = {
