@@ -26,10 +26,10 @@ load().then((mapglAPI) => {
   if (isLowPoly) {
     baseUrl = 'https://samolet-2gis.hart-estate.ru/assets/models';
     models = {
-      environment: 'House_02_Environment.glb',
-      building: 'House_02_Full.glb',
-      floor2: 'House_02_2floor.glb',
-      floor8: 'House_02_8floor.glb',
+      environment: 'House_Low_Env.glb',
+      building: 'House_Low_Full.glb',
+      floor2: 'House_Low_2fl.glb',
+      floor8: 'House_Low_8fl.glb',
     };
   }
 
@@ -224,7 +224,7 @@ load().then((mapglAPI) => {
                 },
                 {
                   coordinates: [37.384030, 55.808375],
-                  label: '3Е\n0.88 м²',
+                  label: '3Е\n50.88 м²',
                   userData: {
                     url: 'https://macro-test-new.tilda.ws/flat-50-88',
                   },
