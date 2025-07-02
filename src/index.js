@@ -19,7 +19,7 @@ load().then((mapglAPI) => {
     floor2: 'House_2floor.glb',
     floor8: 'House_8floor.glb',
   };
-  let baseUrl = 'https://getfloorplan-2-prod.s3.eu-central-1.amazonaws.com/app_storage_production/public/';
+  let baseUrl = 'https://storage.yandexcloud.net/getfloorplan-gltf/';
   const container = document.getElementById('container');
   const isLowPoly = container.dataset.lowPoly === 'true';
 
