@@ -1,11 +1,11 @@
 # samolet-2gis
-This incredible project was developed for the Russian company [Samolet](https://samolet.ru/) to showcase their residential complex in [Krasnogorsk](https://en.wikipedia.org/wiki/Krasnogorsk,_Moscow_Oblast)
+This project was developed for the Russian company [Samolet](https://samolet.ru/) to showcase their residential complex in [Krasnogorsk](https://en.wikipedia.org/wiki/Krasnogorsk,_Moscow_Oblast)
 
-Here is the [link](https://samolet-2gis.hart-estate.ru/) to enjoy this beauty
+Here is the [link](https://samolet-2gis.hart-estate.ru/)
 
 And here is the [low poly version](https://samolet-2gis.hart-estate.ru/lowPoly.html)
 
-## Instalation
+## Installation
 If you want to run it locally, make sure you have these programs installed on your Unix machine (Windows is supported as well)
 
 1. git
