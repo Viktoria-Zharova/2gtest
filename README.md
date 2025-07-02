@@ -6,7 +6,7 @@ Here is the [link](https://samolet-2gis.hart-estate.ru/) to enjoy this beauty
 And here is the [low poly version](https://samolet-2gis.hart-estate.ru/lowPoly.html)
 
 ## Instalation
-If you want to run it locally, make sure you have these programms installed on your Unix machine (Windows is supported as well)
+If you want to run it locally, make sure you have these programs installed on your Unix machine (Windows is supported as well)
 
 1. git
 2. node.js 18+
