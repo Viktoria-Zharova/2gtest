@@ -13,18 +13,28 @@ load().then((mapglAPI) => {
     maxZoom: 21,
   });
 
+  // Исправляем ссылки на существующие low-poly модели
   let models = {
-    environment: 'House_Environment.glb',
-    building: 'House_Full.glb',
-    floor2: 'House_2floor.glb',
-    floor8: 'House_8floor.glb',
+    environment: 'House_Low_Env.glb',
+    building: 'House_Low_Full.glb',
+    floor2: 'House_Low_2fl.glb',
+    floor8: 'House_Low_8fl.glb',
   };
-  let baseUrl = 'https://storage.yandexcloud.net/getfloorplan-gltf/';
+  
+let baseUrl = 'assets/models_draco/'; // ← правильный путь
   const container = document.getElementById('container');
-  const isLowPoly = container.dataset.lowPoly === 'true';
+  const isLowPoly = container.getAttribute('data-low-poly') === 'true';
 
   if (isLowPoly) {
-    baseUrl = 'https://samolet-2gis.hart-estate.ru/assets/models';
+  baseUrl = 'assets/models_draco/';
+    models = {
+      environment: 'House_Low_Env.glb',
+      building: 'House_Low_Full.glb',
+      floor2: 'House_Low_2fl.glb',
+      floor8: 'House_Low_8fl.glb',
+    };
+  } else {
+  baseUrl = 'assets/models_draco/';
     models = {
       environment: 'House_Low_Env.glb',
       building: 'House_Low_Full.glb',
@@ -36,96 +46,6 @@ load().then((mapglAPI) => {
   const needPreload = new URL(location.href).searchParams.has('preload');
   const curtain = document.getElementById('curtain');
   curtain.style.display = 'block';
-
-  function sleep(time) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, time);
-    });
-  }
-
-  function waitIdle() {
-    return new Promise((resolve) => {
-      map.once('idle', resolve);
-    });
-  }
-
-  function removeLabels() {
-    if (map._impl.currentPendingStyle) {
-      map.once('styleload', () => {
-        labelIds.forEach((id) => {
-          map.removeLayer(id);
-        });
-      });
-      return;
-    }
-
-    labelIds.forEach((id) => {
-      map.removeLayer(id);
-    });
-  }
-
-  async function runScenario(scenario) {
-    for (const part of scenario) {
-      const duration = part.duration || 0;
-      if (part.zoom !== undefined) {
-        const params = {
-          duration,
-          animateHeight: true,
-        };
-        if (part.zoomEasing) {
-          params.easing = part.zoomEasing;
-        }
-        map.setZoom(part.zoom, params);
-      }
-      if (part.pitch !== undefined) {
-        const params = {
-          duration,
-        };
-        if (part.pitchEasing) {
-          params.easing = part.pitchEasing;
-        }
-        map.setPitch(part.pitch, params);
-      }
-      if (part.snowIntensity !== undefined) {
-        const intensity = part.snowIntensity;
-        snow.setOptions({
-          enabled: intensity > 0,
-          particleNumber: intensity * 1000,
-          velocityZ: 500 + intensity * 7,
-          velocityX: intensity * 4,
-          dispersion: intensity,
-        });
-      }
-      if (part.center) {
-        const params = {
-          duration,
-        };
-        if (part.centerEasing) {
-          params.easing = part.centerEasing;
-        }
-        map.setCenter(part.center, params);
-      }
-      if (part.rotation !== undefined) {
-        const params = {
-          duration,
-        };
-        if (part.rotationEasing) {
-          params.easing = part.rotationEasing;
-        }
-        map.setRotation(part.rotation, { ...params, normalize: false });
-      }
-
-      if (typeof part.f === 'function') {
-        part.f();
-      }
-
-      if (part.waitIdle) {
-        await waitIdle();
-      } else {
-        await sleep(duration);
-      }
-    }
-  }
 
   const plugin = new GltfPlugin(map, {
     modelsLoadStrategy: needPreload ? 'waitAll' : 'dontWaitAll',
@@ -144,29 +64,118 @@ load().then((mapglAPI) => {
     },
   });
 
-  // const lon = 37.383849;
-  // const lat = 55.808361;
+// === МОНИТОРИНГ ДЛЯ 2GIS ===
+console.log('=== СИСТЕМНЫЙ МОНИТОРИГ 2GIS АКТИВИРОВАН ===');
+
+const monitoringStartTime = performance.now();
+let modelsReported = false;
+
+// 1. Мониторинг загрузки GLB файлов
+let glbLoadCount = 0;
+const totalExpectedGLBs = 48 * 3; // 48 домов × 3 модели каждый
+
+// 2. Проверка загрузки ресурсов
+function checkResourceLoading() {
+  const resources = performance.getEntriesByType('resource');
+  const glbResources = resources.filter(resource => 
+    resource.name.includes('.glb')
+  );
+  
+  if (glbResources.length > glbLoadCount) {
+    glbLoadCount = glbResources.length;
+    console.log(`Загружено GLB файлов: ${glbLoadCount}`);
+    
+    // Информация о файлах
+    glbResources.slice(-5).forEach(resource => {
+      const sizeMB = (resource.transferSize / 1024 / 1024).toFixed(2);
+      console.log(`   ${resource.name.split('/').pop()} (${sizeMB}MB, ${Math.round(resource.duration)}ms)`);
+    });
+  }
+  
+  if (glbLoadCount >= totalExpectedGLBs && !modelsReported) {
+    modelsReported = true;
+    const totalLoadTime = performance.now() - monitoringStartTime;
+    console.log(`ВСЕ МОДЕЛИ ЗАГРУЖЕНЫ`);
+    console.log(`Общее время: ${Math.round(totalLoadTime)}ms`);
+    console.log(`GLB файлов: ${glbLoadCount}`);
+  }
+}
+
+// 3. Мониторинг FPS
+let frameCount = 0;
+let lastFPSTime = performance.now();
+
+function monitorFPS() {
+  frameCount++;
+  const currentTime = performance.now();
+  
+  if (currentTime - lastFPSTime >= 3000) {
+    const fps = Math.round((frameCount * 1000) / (currentTime - lastFPSTime));
+    
+    let fpsStatus = 'ХОРОШО';
+    if (fps < 20) fpsStatus = 'НОРМА';
+    if (fps < 10) fpsStatus = 'ПЛОХО';
+    
+    console.log(`FPS: ${fps} [${fpsStatus}]`);
+    
+    frameCount = 0;
+    lastFPSTime = currentTime;
+  }
+  requestAnimationFrame(monitorFPS);
+}
+
+// 4. Мониторинг памяти
+function monitorMemory() {
+  if (performance.memory) {
+    const mem = performance.memory;
+    const usedMB = Math.round(mem.usedJSHeapSize / 1024 / 1024);
+    const totalMB = Math.round(mem.totalJSHeapSize / 1024 / 1024);
+    const percentage = Math.round(usedMB/totalMB*100);
+    
+    let memoryStatus = 'НОРМА';
+    if (percentage > 80) memoryStatus = 'ВЫСОКАЯ';
+    else if (percentage > 60) memoryStatus = 'ПОВЫШЕННАЯ';
+    
+    console.log(`Память: ${usedMB}MB / ${totalMB}MB (${percentage}%) [${memoryStatus}]`);
+  }
+}
+
+// 5. Проверка canvas
+function checkVisibleModels() {
+  const mapContainer = document.getElementById('container');
+  const canvas = mapContainer?.querySelector('canvas');
+  
+  if (canvas) {
+    console.log(`Canvas: ${canvas.width}x${canvas.height}`);
+  }
+}
+
+// Запуск мониторинга
+console.log('Запуск мониторинга 2GIS');
+console.log(`Ожидаем загрузки ~${totalExpectedGLBs} GLB файлов`);
+
+// Интервалы мониторинга
+setInterval(checkResourceLoading, 2000);
+setInterval(monitorMemory, 5000);
+setInterval(checkVisibleModels, 10000);
+monitorFPS();
+
+// Финальная проверка
+setTimeout(() => {
+  if (!modelsReported) {
+    console.log('Предупреждение: через 30 секунд модели могут быть не полностью загружены');
+    console.log(`Текущий счетчик GLB: ${glbLoadCount}`);
+  }
+}, 30000);
+
+
+
 
   const lon = 37.38348;
   const lat = 55.808431;
 
+  // Оставляем исходную сцену (только building без environment)
   const realtyScene = [
-
-    {
-      modelId: 'environment',
-      coordinates: [lon, lat],
-      rotateX: 90,
-      rotateY: 253,
-      scale: 172,
-      modelUrl: models.environment,
-      linkedIds: ['70030076609150266'],
-      mapOptions: {
-        center: [lon, lat],
-        pitch: 150,
-        zoom: 88,
-        rotation: 0
-      }
-    },
     {
       modelId: 'building',
       coordinates: [lon, lat],
@@ -184,89 +193,7 @@ load().then((mapglAPI) => {
             pitch: 0.001,
             zoom: 19.5,
             rotation: -5,
-          },
-          poiGroups: [
-            {
-              id: 1003,
-              type: 'primary',
-              minZoom: 18.5,
-              elevation: 20,
-              fontSize: 15,
-              fontColor: '#3a3a3a',
-              data: [
-                {
-                  coordinates: [37.383675, 55.808440],
-                  label: '2Е\n42.94 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-42-94',
-                  },
-                },
-                {
-                  coordinates: [37.383570, 55.808457],
-                  label: '2Е\n40.82 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-40-82',
-                  },
-                },
-                {
-                  coordinates: [37.383800, 55.808414],
-                  label: '2Е\n35.57 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-35-57',
-                  },
-                },
-                {
-                  coordinates: [37.383900, 55.808400],
-                  label: '3Е\n50.15 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-50-15',
-                  },
-                },
-                {
-                  coordinates: [37.384030, 55.808375],
-                  label: '3Е\n50.88 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-50-88',
-                  },
-                },
-                {
-                  coordinates: [37.384030, 55.808327],
-                  label: '2Е\n40.81 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-40-81',
-                  },
-                },
-                {
-                  coordinates: [37.383925, 55.808327],
-                  label: '2Е\n31.59 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-31-59',
-                  },
-                },
-                {
-                  coordinates: [37.383855, 55.808337],
-                  label: '1С\n22.09 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-22-09',
-                  },
-                },
-                {
-                  coordinates: [37.383650, 55.808370],
-                  label: '1С\n21.72 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-21-72',
-                  },
-                },
-                {
-                  coordinates: [37.383550, 55.808390],
-                  label: '3Е\n50.84 м²',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/flat-50-84',
-                  },
-                },
-              ],
-            },
-          ],
+          }
         },
         {
           id: '2',
@@ -277,131 +204,79 @@ load().then((mapglAPI) => {
             pitch: 0.001,
             zoom: 20,
             rotation: -5,
-          },
-          poiGroups: [
-            {
-              id: 1003,
-              type: 'primary',
-              minZoom: 18.5,
-              elevation: 1,
-              fontSize: 10,
-              fontColor: '#3a3a3a',
-              data: [
-                {
-                  coordinates: [37.383100, 55.808540],
-                  label: '121.41 м²\nТанцевальный зал / \nТренажерный зал',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-121-41',
-                  },
-                },
-                {
-                  coordinates: [37.382930, 55.808560],
-                  label: '25.3 м²\nОбщественный туалет',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-25-3',
-                  },
-                },
-                {
-                  coordinates: [37.383050, 55.808500],
-                  label: '131.38 м²\nКоридор',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-131-38',
-                  },
-                },
-                {
-                  coordinates: [37.383230, 55.808500],
-                  label: '3.73 м²\nКофеточка',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-3-73',
-                  },
-                },
-                {
-                  coordinates: [37.383675, 55.808440],
-                  label: '42.94 м²\nСалон красоты /\nМагазин кресел',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-42-94',
-                  },
-                },
-                {
-                  coordinates: [37.383570, 55.808457],
-                  label: '40.82 м²\nБарбершоп /\nБиблиотека',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-40-82',
-                  },
-                },
-                {
-                  coordinates: [37.383800, 55.808414],
-                  label: '35.57 м²\nРемонтная мастерская /\nМагазин одежды',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-35-57',
-                  },
-                },
-                {
-                  coordinates: [37.383965, 55.808390],
-                  label: '101.03 м²\nКомпьютерный клуб /\nМедклиника',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-101-03',
-                  },
-                },
-                {
-                  coordinates: [37.384030, 55.808327],
-                  label: '40.81 м²\nУчебный класс /\nДетский клуб',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-40-81',
-                  },
-                },
-                {
-                  coordinates: [37.383925, 55.808327],
-                  label: '31.59 м²\nКабинет психолога /\nКофейня',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-31-59',
-                  },
-                },
-                {
-                  coordinates: [37.383855, 55.808337],
-                  label: '22.09 м²\nWildberries /\nСДЭК',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-22-09',
-                  },
-                },
-                {
-                  coordinates: [37.383740, 55.808370],
-                  label: '80.8 м²\nКоридор',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-80-8',
-                  },
-                },
-                {
-                  coordinates: [37.383650, 55.808370],
-                  label: '21.72 м²\nOzon /\nЯндекс Маркет',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-21-72',
-                  },
-                },
-                {
-                  coordinates: [37.383550, 55.808390],
-                  label: '50.84 м²\nСтоматология /\nSPA',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-50-84',
-                  },
-                },
-                {
-                  coordinates: [37.383220, 55.808440],
-                  label: '287.78 м²\nОфис /\nПятерочка',
-                  userData: {
-                    url: 'https://macro-test-new.tilda.ws/commercial-287-78',
-                  },
-                },
-              ],
-            },
-          ],
-        },
+          }
+        }
       ]
     }
   ];
 
-  plugin.addRealtyScene(realtyScene).then(() => {
-    curtain.style.display = 'none';
-  });
+  plugin.addRealtyScene(realtyScene);
 
+  // --- Добавляем 47 копий дома ---
+  const cluster1 = [
+    [37.620393, 55.75396], [37.621393, 55.75396], [37.622393, 55.75396], [37.623393, 55.75396], [37.624393, 55.75396],
+    [37.625393, 55.75396], [37.626393, 55.75396], [37.627393, 55.75396], [37.628393, 55.75396], [37.629393, 55.75396]
+  ];
+  const cluster2 = [
+    [37.540393, 55.70096], [37.541393, 55.70096], [37.542393, 55.70096], [37.543393, 55.70096],
+    [37.544393, 55.70096], [37.545393, 55.70096], [37.546393, 55.70096]
+  ];
+  const cluster3 = [
+    [37.680393, 55.80096], [37.681393, 55.80096], [37.682393, 55.80096], [37.683393, 55.80096]
+  ];
+  const cluster4 = [
+    [37.500393, 55.85096], [37.501393, 55.85096]
+  ];
+  const singleHouses = [
+    [37.700393, 55.76096], [37.710393, 55.77096], [37.720393, 55.78096], [37.730393, 55.79096],
+    [37.740393, 55.80096], [37.750393, 55.81096], [37.760393, 55.82096], [37.770393, 55.83096],
+    [37.780393, 55.84096], [37.790393, 55.85096], [37.800393, 55.86096], [37.810393, 55.87096],
+    [37.820393, 55.88096], [37.830393, 55.89096], [37.840393, 55.90096], [37.850393, 55.91096],
+    [37.860393, 55.92096], [37.870393, 55.93096], [37.880393, 55.94096], [37.890393, 55.95096],
+    [37.900393, 55.96096], [37.910393, 55.97096], [37.920393, 55.98096], [37.930393, 55.99096]
+  ];
+  
+  const allCoords = [...cluster1, ...cluster2, ...cluster3, ...cluster4, ...singleHouses];
+
+  // Для каждого дома создаём только building без environment
+  for (let i = 0; i < allCoords.length; i++) {
+    const coords = allCoords[i];
+    const houseScene = [
+      {
+        modelId: `building_copy_${i+1}`,
+        coordinates: coords,
+        rotateX: 90,
+        rotateY: 253,
+        scale: 172,
+        modelUrl: `House_Low_Full_${i+1}.glb`,
+        floors: [
+          {
+            id: '2',
+            text: '1-3',
+            modelUrl: `House_Low_2fl_${i+1}.glb`,
+            mapOptions: {
+              center: coords,
+              pitch: 0.001,
+              zoom: 20,
+              rotation: -5,
+            },
+          },
+          {
+            id: '8',
+            text: '4-24',
+            modelUrl: `House_Low_8fl_${i+1}.glb`,
+            mapOptions: {
+              center: coords,
+              pitch: 0.001,
+              zoom: 19.5,
+              rotation: -5,
+            },
+          }
+        ]
+      }
+    ];
+    plugin.addRealtyScene(houseScene);
+  }
+
+  curtain.style.display = 'none';
 });
