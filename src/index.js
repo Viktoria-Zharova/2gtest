@@ -13,206 +13,93 @@ load().then((mapglAPI) => {
     maxZoom: 21,
   });
 
-  // Исправляем ссылки на существующие low-poly модели
-  let models = {
-    environment: 'House_Low_Env.glb',
-    building: 'House_Low_Full.glb',
-    floor2: 'House_Low_2fl.glb',
-    floor8: 'House_Low_8fl.glb',
-  };
-  
-let baseUrl = 'assets/models_draco/'; // ← правильный путь
-  const container = document.getElementById('container');
-  const isLowPoly = container.getAttribute('data-low-poly') === 'true';
-
-  if (isLowPoly) {
-  baseUrl = 'assets/models_draco/';
-    models = {
-      environment: 'House_Low_Env.glb',
-      building: 'House_Low_Full.glb',
-      floor2: 'House_Low_2fl.glb',
-      floor8: 'House_Low_8fl.glb',
-    };
-  } else {
-  baseUrl = 'assets/models_draco/';
-    models = {
-      environment: 'House_Low_Env.glb',
-      building: 'House_Low_Full.glb',
-      floor2: 'House_Low_2fl.glb',
-      floor8: 'House_Low_8fl.glb',
-    };
-  }
-
-  const needPreload = new URL(location.href).searchParams.has('preload');
+  const baseUrl = 'assets/models_draco/';
   const curtain = document.getElementById('curtain');
   curtain.style.display = 'block';
 
+  // === МОНИТОРИНГ ДЛЯ 2GIS ===
+  console.log('=== СИСТЕМНЫЙ МОНИТОРИГ 2GIS АКТИВИРОВАН ===');
+
+  const monitoringStartTime = performance.now();
+  let modelsReported = false;
+  let glbLoadCount = 0;
+  const totalExpectedGLBs = 48 * 3; // 48 домов × 3 модели каждый
+
+  // Мониторинг загрузки ресурсов
+  function checkResourceLoading() {
+    const resources = performance.getEntriesByType('resource');
+    const glbResources = resources.filter(resource => 
+      resource.name.includes('.glb')
+    );
+    
+    if (glbResources.length > glbLoadCount) {
+      glbLoadCount = glbResources.length;
+      console.log(`Загружено GLB файлов: ${glbLoadCount}`);
+      
+      glbResources.slice(-5).forEach(resource => {
+        const sizeMB = (resource.transferSize / 1024 / 1024).toFixed(2);
+        console.log(`   ${resource.name.split('/').pop()} (${sizeMB}MB, ${Math.round(resource.duration)}ms)`);
+      });
+    }
+    
+    if (glbLoadCount >= totalExpectedGLBs && !modelsReported) {
+      modelsReported = true;
+      const totalLoadTime = performance.now() - monitoringStartTime;
+      console.log(`✅ ВСЕ МОДЕЛИ ЗАГРУЖЕНЫ`);
+      console.log(`Общее время: ${Math.round(totalLoadTime)}ms`);
+    }
+  }
+
+  // Мониторинг FPS
+  let frameCount = 0;
+  let lastFPSTime = performance.now();
+  function monitorFPS() {
+    frameCount++;
+    const currentTime = performance.now();
+    if (currentTime - lastFPSTime >= 3000) {
+      const fps = Math.round((frameCount * 1000) / (currentTime - lastFPSTime));
+      let fpsStatus = fps >= 30 ? 'ХОРОШО' : fps >= 20 ? 'НОРМА' : 'ПЛОХО';
+      console.log(`FPS: ${fps} [${fpsStatus}]`);
+      frameCount = 0;
+      lastFPSTime = currentTime;
+    }
+    requestAnimationFrame(monitorFPS);
+  }
+
+  // Мониторинг памяти
+  function monitorMemory() {
+    if (performance.memory) {
+      const mem = performance.memory;
+      const usedMB = Math.round(mem.usedJSHeapSize / 1024 / 1024);
+      const totalMB = Math.round(mem.totalJSHeapSize / 1024 / 1024);
+      const percentage = Math.round(usedMB/totalMB*100);
+      let memoryStatus = percentage > 80 ? 'ВЫСОКАЯ' : percentage > 60 ? 'ПОВЫШЕННАЯ' : 'НОРМА';
+      console.log(`Память: ${usedMB}MB / ${totalMB}MB (${percentage}%) [${memoryStatus}]`);
+    }
+  }
+
+  // Запуск мониторинга
+  console.log('Запуск мониторинга 2GIS');
+  console.log(`Ожидаем загрузки ~${totalExpectedGLBs} GLB файлов`);
+  setInterval(checkResourceLoading, 2000);
+  setInterval(monitorMemory, 5000);
+  monitorFPS();
+
   const plugin = new GltfPlugin(map, {
-    modelsLoadStrategy: needPreload ? 'waitAll' : 'dontWaitAll',
+    modelsLoadStrategy: 'dontWaitAll',
     ambientLight: { color: '#ffffff', intencity: 3 },
     modelsBaseUrl: baseUrl,
     poiConfig: {
-      primary: {
-        fontSize: 14,
-      },
-      secondary: {
-        fontSize: 14,
-      },
+      primary: { fontSize: 14 },
+      secondary: { fontSize: 14 },
     },
-    hoverHighlight: {
-      intencity: 0.1,
-    },
+    hoverHighlight: { intencity: 0.1 },
   });
-
-// === МОНИТОРИНГ ДЛЯ 2GIS ===
-console.log('=== СИСТЕМНЫЙ МОНИТОРИГ 2GIS АКТИВИРОВАН ===');
-
-const monitoringStartTime = performance.now();
-let modelsReported = false;
-
-// 1. Мониторинг загрузки GLB файлов
-let glbLoadCount = 0;
-const totalExpectedGLBs = 48 * 3; // 48 домов × 3 модели каждый
-
-// 2. Проверка загрузки ресурсов
-function checkResourceLoading() {
-  const resources = performance.getEntriesByType('resource');
-  const glbResources = resources.filter(resource => 
-    resource.name.includes('.glb')
-  );
-  
-  if (glbResources.length > glbLoadCount) {
-    glbLoadCount = glbResources.length;
-    console.log(`Загружено GLB файлов: ${glbLoadCount}`);
-    
-    // Информация о файлах
-    glbResources.slice(-5).forEach(resource => {
-      const sizeMB = (resource.transferSize / 1024 / 1024).toFixed(2);
-      console.log(`   ${resource.name.split('/').pop()} (${sizeMB}MB, ${Math.round(resource.duration)}ms)`);
-    });
-  }
-  
-  if (glbLoadCount >= totalExpectedGLBs && !modelsReported) {
-    modelsReported = true;
-    const totalLoadTime = performance.now() - monitoringStartTime;
-    console.log(`ВСЕ МОДЕЛИ ЗАГРУЖЕНЫ`);
-    console.log(`Общее время: ${Math.round(totalLoadTime)}ms`);
-    console.log(`GLB файлов: ${glbLoadCount}`);
-  }
-}
-
-// 3. Мониторинг FPS
-let frameCount = 0;
-let lastFPSTime = performance.now();
-
-function monitorFPS() {
-  frameCount++;
-  const currentTime = performance.now();
-  
-  if (currentTime - lastFPSTime >= 3000) {
-    const fps = Math.round((frameCount * 1000) / (currentTime - lastFPSTime));
-    
-    let fpsStatus = 'ХОРОШО';
-    if (fps < 20) fpsStatus = 'НОРМА';
-    if (fps < 10) fpsStatus = 'ПЛОХО';
-    
-    console.log(`FPS: ${fps} [${fpsStatus}]`);
-    
-    frameCount = 0;
-    lastFPSTime = currentTime;
-  }
-  requestAnimationFrame(monitorFPS);
-}
-
-// 4. Мониторинг памяти
-function monitorMemory() {
-  if (performance.memory) {
-    const mem = performance.memory;
-    const usedMB = Math.round(mem.usedJSHeapSize / 1024 / 1024);
-    const totalMB = Math.round(mem.totalJSHeapSize / 1024 / 1024);
-    const percentage = Math.round(usedMB/totalMB*100);
-    
-    let memoryStatus = 'НОРМА';
-    if (percentage > 80) memoryStatus = 'ВЫСОКАЯ';
-    else if (percentage > 60) memoryStatus = 'ПОВЫШЕННАЯ';
-    
-    console.log(`Память: ${usedMB}MB / ${totalMB}MB (${percentage}%) [${memoryStatus}]`);
-  }
-}
-
-// 5. Проверка canvas
-function checkVisibleModels() {
-  const mapContainer = document.getElementById('container');
-  const canvas = mapContainer?.querySelector('canvas');
-  
-  if (canvas) {
-    console.log(`Canvas: ${canvas.width}x${canvas.height}`);
-  }
-}
-
-// Запуск мониторинга
-console.log('Запуск мониторинга 2GIS');
-console.log(`Ожидаем загрузки ~${totalExpectedGLBs} GLB файлов`);
-
-// Интервалы мониторинга
-setInterval(checkResourceLoading, 2000);
-setInterval(monitorMemory, 5000);
-setInterval(checkVisibleModels, 10000);
-monitorFPS();
-
-// Финальная проверка
-setTimeout(() => {
-  if (!modelsReported) {
-    console.log('Предупреждение: через 30 секунд модели могут быть не полностью загружены');
-    console.log(`Текущий счетчик GLB: ${glbLoadCount}`);
-  }
-}, 30000);
-
-
-
 
   const lon = 37.38348;
   const lat = 55.808431;
 
-  // Оставляем исходную сцену (только building без environment)
-  const realtyScene = [
-    {
-      modelId: 'building',
-      coordinates: [lon, lat],
-      rotateX: 90,
-      rotateY: 253,
-      scale: 172,
-      modelUrl: models.building,
-      floors: [
-        {
-          id: '8',
-          text: '4-24',
-          modelUrl: models.floor8,
-          mapOptions: {
-            center: [lon, lat],
-            pitch: 0.001,
-            zoom: 19.5,
-            rotation: -5,
-          }
-        },
-        {
-          id: '2',
-          text: '1-3',
-          modelUrl: models.floor2,
-          mapOptions: {
-            center: [lon, lat],
-            pitch: 0.001,
-            zoom: 20,
-            rotation: -5,
-          }
-        }
-      ]
-    }
-  ];
-
-  plugin.addRealtyScene(realtyScene);
-
-  // --- Добавляем 47 копий дома ---
+  // --- Координаты для 48 РАЗНЫХ домов ---
   const cluster1 = [
     [37.620393, 55.75396], [37.621393, 55.75396], [37.622393, 55.75396], [37.623393, 55.75396], [37.624393, 55.75396],
     [37.625393, 55.75396], [37.626393, 55.75396], [37.627393, 55.75396], [37.628393, 55.75396], [37.629393, 55.75396]
@@ -238,45 +125,90 @@ setTimeout(() => {
   
   const allCoords = [...cluster1, ...cluster2, ...cluster3, ...cluster4, ...singleHouses];
 
-  // Для каждого дома создаём только building без environment
+  // --- СОЗДАЕМ СЦЕНУ С 48 РАЗНЫМИ ДОМАМИ ---
+  const realtyScene = [];
+
+  // Главный дом (индекс 0)
+  realtyScene.push({
+    modelId: 'main_building',
+    coordinates: [lon, lat],
+    rotateX: 90,
+    rotateY: 253,
+    scale: 172,
+    modelUrl: 'House_Low_Full.glb', // Уникальный файл
+    floors: [
+      {
+        id: '8',
+        text: '4-24',
+        modelUrl: 'House_Low_8fl.glb', // Уникальный файл
+        mapOptions: {
+          center: [lon, lat],
+          pitch: 0.001,
+          zoom: 19.5,
+          rotation: -5,
+        }
+      },
+      {
+        id: '2',
+        text: '1-3',
+        modelUrl: 'House_Low_2fl.glb', // Уникальный файл
+        mapOptions: {
+          center: [lon, lat],
+          pitch: 0.001,
+          zoom: 20,
+          rotation: -5,
+        }
+      }
+    ]
+  });
+
+  // 47 дополнительных РАЗНЫХ домов (индексы 1-47)
   for (let i = 0; i < allCoords.length; i++) {
     const coords = allCoords[i];
-    const houseScene = [
-      {
-        modelId: `building_copy_${i+1}`,
-        coordinates: coords,
-        rotateX: 90,
-        rotateY: 253,
-        scale: 172,
-        modelUrl: `House_Low_Full_${i+1}.glb`,
-        floors: [
-          {
-            id: '2',
-            text: '1-3',
-            modelUrl: `House_Low_2fl_${i+1}.glb`,
-            mapOptions: {
-              center: coords,
-              pitch: 0.001,
-              zoom: 20,
-              rotation: -5,
-            },
+    const houseNumber = i + 1; // Номер дома от 1 до 47
+    
+    realtyScene.push({
+      modelId: `building_${houseNumber}`,
+      coordinates: coords,
+      rotateX: 90,
+      rotateY: 253,
+      scale: 172,
+      modelUrl: `House_Low_Full_${houseNumber}.glb`, // РАЗНЫЕ файлы
+      floors: [
+        {
+          id: '2',
+          text: '1-3',
+          modelUrl: `House_Low_2fl_${houseNumber}.glb`, // РАЗНЫЕ файлы
+          mapOptions: {
+            center: coords,
+            pitch: 0.001,
+            zoom: 20,
+            rotation: -5,
           },
-          {
-            id: '8',
-            text: '4-24',
-            modelUrl: `House_Low_8fl_${i+1}.glb`,
-            mapOptions: {
-              center: coords,
-              pitch: 0.001,
-              zoom: 19.5,
-              rotation: -5,
-            },
-          }
-        ]
-      }
-    ];
-    plugin.addRealtyScene(houseScene);
+        },
+        {
+          id: '8',
+          text: '4-24',
+          modelUrl: `House_Low_8fl_${houseNumber}.glb`, // РАЗНЫЕ файлы
+          mapOptions: {
+            center: coords,
+            pitch: 0.001,
+            zoom: 19.5,
+            rotation: -5,
+          },
+        }
+      ]
+    });
   }
 
-  curtain.style.display = 'none';
+  console.log(`Создано сцен: ${realtyScene.length}`);
+  console.log(`Ожидаем загрузки ${realtyScene.length * 3} моделей (основа + 2 этажа)`);
+
+  // --- ЗАГРУЖАЕМ ВСЕ РАЗНЫЕ МОДЕЛИ ---
+  plugin.addRealtyScene(realtyScene).then(() => {
+    curtain.style.display = 'none';
+    console.log('✅ Все РАЗНЫЕ модели загружены, занавес скрыт');
+    console.log(`Итого загружено: ${realtyScene.length} уникальных домов`);
+  });
+
 });
