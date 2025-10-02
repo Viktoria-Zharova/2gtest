@@ -139,9 +139,9 @@ load().then((mapglAPI) => {
     try {
       const { MeshoptDecoder } = await import('meshoptimizer');
       await MeshoptDecoder.ready;
-      console.log('✅ MeshoptDecoder загружен');
+      console.log('MeshoptDecoder загружен');
     } catch (error) {
-      console.warn('⚠️ MeshoptDecoder не загружен, модели могут не отображаться:', error);
+      console.warn('MeshoptDecoder не загружен, модели могут не отображаться:', error);
     }
   }
 
@@ -259,14 +259,40 @@ load().then((mapglAPI) => {
 
   // Загружаем декодер и добавляем сцену
   setupMeshoptDecoder().then(() => {
-    console.log('Добавляем сцену в плагин...');
+    console.log('Добавляем сцену в плагин с помощью addRealtyScene...');
     
-    // --- ЗАГРУЖАЕМ ВСЕ РАЗНЫЕ МОДЕЛИ ---
-    plugin.addRealtyScene(realtyScene).then(() => {
-      console.log('✅ Все РАЗНЫЕ модели загружены');
-      console.log(`Итого загружено: ${realtyScene.length} уникальных домов`);
+    // === ИСПОЛЬЗУЕМ addRealtyScene ДЛЯ ИНТЕРАКТИВНОСТИ ===
+    
+    // Разделяем сцену на части для оптимизированной загрузки
+    const immediateScene = realtyScene.slice(0, 5); // Первые 5 домов сразу
+    const cachedScene = realtyScene.slice(5);       // Остальные дома
+    
+    console.log(` Сразу загружаем: ${immediateScene.length} домов`);
+    console.log(` В фоне загружаем: ${cachedScene.length} домов`);
+
+    // Сначала добавляем основные дома для интерактивности
+    plugin.addRealtyScene(immediateScene).then(() => {
+
+      // Добавляем обработчики событий для отладки
+      plugin.on('selected', (event) => {
+        console.log('🏠 Выбран дом:', event.modelId);
+        console.log('📊 Данные события:', event);
+      });
+
+      plugin.on('deselected', (event) => {
+      });
+
+      // Затем добавляем остальные дома в фоне
+      if (cachedScene.length > 0) {
+        setTimeout(() => {
+          console.log(`🔄 Добавляем остальные ${cachedScene.length} домов...`);
+          plugin.addRealtyScene(cachedScene).then(() => {
+          });
+        }, 2000);
+      }
+
     }).catch((error) => {
-      console.error('❌ Ошибка загрузки моделей:', error);
+      console.error(' Ошибка загрузки домов:', error);
     });
 
     // Мониторинг загрузки моделей
@@ -284,6 +310,7 @@ load().then((mapglAPI) => {
         
         if (loadedModelsCount >= totalModels) {
           clearInterval(checkProgress);
+          console.log(' Все модели успешно загружены');
         }
       } catch (error) {
         console.log('Мониторинг загрузки:', loadedModelsCount);
