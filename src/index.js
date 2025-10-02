@@ -15,8 +15,8 @@ load().then((mapglAPI) => {
 
   const baseUrl = 'assets/models/';
   const curtain = document.getElementById('curtain');
-  curtain.style.display = 'block';
-
+  const loadingStatus = document.getElementById('loadingStatus');
+  
   // === МОНИТОРИНГ ДЛЯ 2GIS ===
   console.log('=== СИСТЕМНЫЙ МОНИТОРИГ 2GIS АКТИВИРОВАН ===');
 
@@ -24,6 +24,33 @@ load().then((mapglAPI) => {
   let modelsReported = false;
   let glbLoadCount = 0;
   const totalExpectedGLBs = 48 * 3; // 48 домов × 3 модели каждый
+
+  let loadedModelsCount = 0;
+  const totalModels = 48;
+
+  // Безопасное обновление статуса
+  function updateLoadingStatus(text) {
+    if (loadingStatus) {
+      loadingStatus.textContent = text;
+    }
+    console.log(text);
+  }
+
+  // Безопасное обновление прогресса
+  function updateLoadingProgress() {
+    loadedModelsCount++;
+    const progress = Math.round((loadedModelsCount / totalModels) * 100);
+    updateLoadingStatus(`Загружено моделей: ${loadedModelsCount}/${totalModels} (${progress}%)`);
+    
+    if (loadedModelsCount >= totalModels) {
+      updateLoadingStatus('Все модели загружены!');
+      setTimeout(() => {
+        if (loadingStatus) {
+          loadingStatus.style.display = 'none';
+        }
+      }, 3000);
+    }
+  }
 
   // Мониторинг загрузки ресурсов
   function checkResourceLoading() {
@@ -85,10 +112,11 @@ load().then((mapglAPI) => {
   setInterval(monitorMemory, 5000);
   monitorFPS();
 
+  // Инициализация плагина
   const plugin = new GltfPlugin(map, {
     modelsLoadStrategy: 'dontWaitAll',
-    ambientLight: { color: '#ffffff', intencity: 3 },
     modelsBaseUrl: baseUrl,
+    ambientLight: { color: '#ffffff', intencity: 3 },
     poiConfig: {
       primary: { fontSize: 14 },
       secondary: { fontSize: 14 },
@@ -96,16 +124,21 @@ load().then((mapglAPI) => {
     hoverHighlight: { intencity: 0.1 },
   });
 
+  console.log('Стратегия загрузки моделей: dontWaitAll - модели появляются по мере загрузки');
+
+  // Скрываем занавес быстро
+  setTimeout(() => {
+    if (curtain) {
+      curtain.style.display = 'none';
+    }
+    console.log('Интерфейс разблокирован, модели загружаются в фоне');
+  }, 1000);
+
   // === РЕШЕНИЕ ПРОБЛЕМЫ MESHOPT ===
-  // Динамически загружаем и устанавливаем MeshoptDecoder для плагина
   async function setupMeshoptDecoder() {
     try {
-      // Динамический импорт чтобы уменьшить размер бандла
       const { MeshoptDecoder } = await import('meshoptimizer');
       await MeshoptDecoder.ready;
-      
-      // Получаем Three.js экземпляр из плагина и устанавливаем декодер
-      // 2GIS плагин использует свой Three.js, нужно найти способ установить декодер
       console.log('✅ MeshoptDecoder загружен');
     } catch (error) {
       console.warn('⚠️ MeshoptDecoder не загружен, модели могут не отображаться:', error);
@@ -219,18 +252,43 @@ load().then((mapglAPI) => {
 
   console.log(`Создано сцен: ${realtyScene.length}`);
   console.log(`Ожидаем загрузки ${realtyScene.length * 3} моделей (основа + 2 этажа)`);
+  
+  if (loadingStatus) {
+    loadingStatus.textContent = `Начинаем загрузку ${realtyScene.length} моделей...`;
+  }
 
-  // Загружаем декодер и только потом добавляем сцену
+  // Загружаем декодер и добавляем сцену
   setupMeshoptDecoder().then(() => {
+    console.log('Добавляем сцену в плагин...');
+    
     // --- ЗАГРУЖАЕМ ВСЕ РАЗНЫЕ МОДЕЛИ ---
     plugin.addRealtyScene(realtyScene).then(() => {
-      curtain.style.display = 'none';
-      console.log('✅ Все РАЗНЫЕ модели загружены, занавес скрыт');
+      console.log('✅ Все РАЗНЫЕ модели загружены');
       console.log(`Итого загружено: ${realtyScene.length} уникальных домов`);
     }).catch((error) => {
       console.error('❌ Ошибка загрузки моделей:', error);
-      curtain.style.display = 'none';
     });
+
+    // Мониторинг загрузки моделей
+    const checkProgress = setInterval(() => {
+      try {
+        const resources = performance.getEntriesByType('resource');
+        const glbLoaded = resources.filter(r => 
+          r.name.includes('.glb') && r.duration > 0
+        ).length;
+        
+        if (glbLoaded > loadedModelsCount) {
+          loadedModelsCount = glbLoaded;
+          updateLoadingProgress();
+        }
+        
+        if (loadedModelsCount >= totalModels) {
+          clearInterval(checkProgress);
+        }
+      } catch (error) {
+        console.log('Мониторинг загрузки:', loadedModelsCount);
+      }
+    }, 1000);
   });
 
 });
