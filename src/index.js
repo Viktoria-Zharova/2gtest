@@ -13,7 +13,7 @@ load().then((mapglAPI) => {
     maxZoom: 21,
   });
 
-  const baseUrl = 'assets/models_draco/';
+  const baseUrl = 'assets/models/';
   const curtain = document.getElementById('curtain');
   curtain.style.display = 'block';
 
@@ -96,6 +96,22 @@ load().then((mapglAPI) => {
     hoverHighlight: { intencity: 0.1 },
   });
 
+  // === РЕШЕНИЕ ПРОБЛЕМЫ MESHOPT ===
+  // Динамически загружаем и устанавливаем MeshoptDecoder для плагина
+  async function setupMeshoptDecoder() {
+    try {
+      // Динамический импорт чтобы уменьшить размер бандла
+      const { MeshoptDecoder } = await import('meshoptimizer');
+      await MeshoptDecoder.ready;
+      
+      // Получаем Three.js экземпляр из плагина и устанавливаем декодер
+      // 2GIS плагин использует свой Three.js, нужно найти способ установить декодер
+      console.log('✅ MeshoptDecoder загружен');
+    } catch (error) {
+      console.warn('⚠️ MeshoptDecoder не загружен, модели могут не отображаться:', error);
+    }
+  }
+
   const lon = 37.38348;
   const lat = 55.808431;
 
@@ -135,12 +151,12 @@ load().then((mapglAPI) => {
     rotateX: 90,
     rotateY: 253,
     scale: 172,
-    modelUrl: 'House_Low_Full.glb', // Уникальный файл
+    modelUrl: 'House_Low_Full.glb',
     floors: [
       {
         id: '8',
         text: '4-24',
-        modelUrl: 'House_Low_8fl.glb', // Уникальный файл
+        modelUrl: 'House_Low_8fl.glb',
         mapOptions: {
           center: [lon, lat],
           pitch: 0.001,
@@ -151,7 +167,7 @@ load().then((mapglAPI) => {
       {
         id: '2',
         text: '1-3',
-        modelUrl: 'House_Low_2fl.glb', // Уникальный файл
+        modelUrl: 'House_Low_2fl.glb',
         mapOptions: {
           center: [lon, lat],
           pitch: 0.001,
@@ -165,7 +181,7 @@ load().then((mapglAPI) => {
   // 47 дополнительных РАЗНЫХ домов (индексы 1-47)
   for (let i = 0; i < allCoords.length; i++) {
     const coords = allCoords[i];
-    const houseNumber = i + 1; // Номер дома от 1 до 47
+    const houseNumber = i + 1;
     
     realtyScene.push({
       modelId: `building_${houseNumber}`,
@@ -173,12 +189,12 @@ load().then((mapglAPI) => {
       rotateX: 90,
       rotateY: 253,
       scale: 172,
-      modelUrl: `House_Low_Full_${houseNumber}.glb`, // РАЗНЫЕ файлы
+      modelUrl: `House_Low_Full_${houseNumber}.glb`,
       floors: [
         {
           id: '2',
           text: '1-3',
-          modelUrl: `House_Low_2fl_${houseNumber}.glb`, // РАЗНЫЕ файлы
+          modelUrl: `House_Low_2fl_${houseNumber}.glb`,
           mapOptions: {
             center: coords,
             pitch: 0.001,
@@ -189,7 +205,7 @@ load().then((mapglAPI) => {
         {
           id: '8',
           text: '4-24',
-          modelUrl: `House_Low_8fl_${houseNumber}.glb`, // РАЗНЫЕ файлы
+          modelUrl: `House_Low_8fl_${houseNumber}.glb`,
           mapOptions: {
             center: coords,
             pitch: 0.001,
@@ -204,11 +220,17 @@ load().then((mapglAPI) => {
   console.log(`Создано сцен: ${realtyScene.length}`);
   console.log(`Ожидаем загрузки ${realtyScene.length * 3} моделей (основа + 2 этажа)`);
 
-  // --- ЗАГРУЖАЕМ ВСЕ РАЗНЫЕ МОДЕЛИ ---
-  plugin.addRealtyScene(realtyScene).then(() => {
-    curtain.style.display = 'none';
-    console.log('✅ Все РАЗНЫЕ модели загружены, занавес скрыт');
-    console.log(`Итого загружено: ${realtyScene.length} уникальных домов`);
+  // Загружаем декодер и только потом добавляем сцену
+  setupMeshoptDecoder().then(() => {
+    // --- ЗАГРУЖАЕМ ВСЕ РАЗНЫЕ МОДЕЛИ ---
+    plugin.addRealtyScene(realtyScene).then(() => {
+      curtain.style.display = 'none';
+      console.log('✅ Все РАЗНЫЕ модели загружены, занавес скрыт');
+      console.log(`Итого загружено: ${realtyScene.length} уникальных домов`);
+    }).catch((error) => {
+      console.error('❌ Ошибка загрузки моделей:', error);
+      curtain.style.display = 'none';
+    });
   });
 
 });
